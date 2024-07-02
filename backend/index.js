@@ -2,11 +2,15 @@
 import express from "express";
 import { PORT, mongoDBURL } from "./config.js";
 import mongoose from "mongoose";
-import { Book } from "./models/bookModel.js";
+import { Game } from "./models/gameModel.js";
+import cors from 'cors';
 
 // Initializing express and json parser
 const app = express();
 app.use(express.json());
+
+//Using CORS
+app.use(cors());
 
 // Testing the app is working
 app.get("/", (request, response) => {
@@ -14,43 +18,95 @@ app.get("/", (request, response) => {
   return response.status(234).send("Welcome to my app");
 });
 
-//Post a book method
-app.post("/books", async (request, response) => {
+//Post a game method
+app.post("/games", async (request, response) => {
   try {
     if (
       !request.body.title ||
-      !request.body.author ||
+      !request.body.description ||
       !request.body.publishYear
     ) {
       return response.status(400).send({
-        message: "Send all required fields: title, author publishYear",
+        message: "Send all required fields: title, description publishYear",
       });
     }
-    const newBook = {
+    const newGame = {
       title: request.body.title,
-      author: request.body.author,
+      description: request.body.description,
       publishYear: request.body.publishYear,
     };
-    const book = await Book.create(newBook);
+    const game = await Game.create(newGame);
 
-    return response.status(201).send(book);
+    return response.status(201).send(game);
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
   }
 });
 
-//Get all books method
+//Get all games method
 
-app.get("/books", async (request, response) => {
+app.get("/games", async (request, response) => {
   try {
-    const books = await Bookfind({});
-    response.status(200).json(books);
+    const games = await Game.find({});
+    return response.status(200).json({ count: games.length, data: games });
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
   }
 });
+
+//Get game by ID
+
+app.get("/games/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+    const game = await Game.findById(id);
+    return response.status(200).json(game);
+  } catch (error) {
+    console.log(error.message);
+    response.status(500).send({ message: error.message });
+  }
+});
+
+// Update a game
+app.put("/games/:id", async (request, response) => {
+  try {
+    if (
+      !request.body.title ||
+      !request.body.description ||
+      !request.body.publishYear
+    ) {
+      return response.status(400).send({
+        message: "Send all required fields: title, description publishYear",
+      });
+    }
+    const { id } = request.params;
+    const result = await Game.findByIdAndUpdate(id, request.body);
+    if (!result) {
+      return response.status(404).send({ message: "Game not found" });
+    }
+    return response.status(200).send({ message: "Game updated" });
+  } catch (error) {
+    console.log(error.message);
+    response.status(500).send({ message: error.message });
+  }
+});
+//Delete a game method
+
+app.delete("/games/:id", async (request, response) => {
+    try {
+      const { id } = request.params;
+      const result = await Game.findByIdAndDelete(id);
+      if (!result) {
+        return response.status(404).send({ message: "Game not found" });
+      }
+      return response.status(200).send({ message: "Game deleted" });
+    } catch (error) {
+      console.log(error.message);
+      response.status(500).send({ message: error.message });
+    }
+  });
 
 //Connect to MongooseDB
 mongoose

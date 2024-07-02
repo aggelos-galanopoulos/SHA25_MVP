@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
-const bookSchema = mongoose.Schema(
+const gameSchema = mongoose.Schema(
     {
         title: {
             type: String,
             required: true,
         },
-        author: {
+        description: {
             type: String,
             required: true,
         },
@@ -20,4 +20,4 @@ const bookSchema = mongoose.Schema(
     }
 )
 
-export const Book = mongoose.model('Cat', bookSchema);
+export const Game = mongoose.model('fun', gameSchema);
